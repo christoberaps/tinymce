@@ -1,6 +1,7 @@
 import { Arr, Fun } from '@ephox/katamari';
 import { ColumnContext } from './ColumnContext';
 import { TableSize } from '../resize/TableSize';
+// import { console } from '@ephox/dom-globals';
 
 /*
  * Based on the column index, identify the context
@@ -42,13 +43,17 @@ const determine = function (input: number[], column: number, step: number, table
   };
 
   const onChange = function (index: number, next: number) {
+    // For all cases (ltr and rtl), excluding the 'resizetable' case, the sum of all of the deltas should total zero
     if (step >= 0) {
       const newNext = Math.max(tableSize.minCellWidth(), result[next] - step);
-      return zero(result.slice(0, index)).concat([ step, newNext - result[next] ]).concat(zero(result.slice(next + 1)));
+      const diffx = newNext - result[next];
+      const newDeltas = tableSize.columnSizing === 'resizetable' ? [ step, 0 ] : [ Math.abs(diffx), diffx ];
+      return zero(result.slice(0, index)).concat(newDeltas).concat(zero(result.slice(next + 1)));
     } else {
       const newThis = Math.max(tableSize.minCellWidth(), result[index] + step);
       const diffx = result[index] - newThis;
-      return zero(result.slice(0, index)).concat([ newThis - result[index], diffx ]).concat(zero(result.slice(next + 1)));
+      const newDeltas = tableSize.columnSizing === 'resizetable' ? [ -diffx, 0 ] : [ newThis - result[index], diffx ];
+      return zero(result.slice(0, index)).concat(newDeltas).concat(zero(result.slice(next + 1)));
     }
   };
 
@@ -58,7 +63,17 @@ const determine = function (input: number[], column: number, step: number, table
     return onChange(index, next);
   };
 
+  // Applies to the last column bar
   const onRight = function (_prev: number, index: number) {
+    if (tableSize.columnSizing === 'default') {
+      if (tableSize.widthType === 'fixed') {
+        const width = Arr.foldl(result, (acc, num) => acc + num, 0);
+        const multipler = (width + step) / width;
+        return Arr.map(result, (val) => val * multipler - val);
+      }
+      return zero(result);
+    }
+
     if (step >= 0) {
       return zero(result.slice(0, index)).concat([ step ]);
     } else {

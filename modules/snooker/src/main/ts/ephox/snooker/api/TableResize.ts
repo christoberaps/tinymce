@@ -4,6 +4,7 @@ import { BarManager } from '../resize/BarManager';
 import * as BarPositions from '../resize/BarPositions';
 import { ResizeWire } from './ResizeWire';
 import { Element } from '@ephox/sugar';
+import { ColumnSizing } from '../resize/TableSize';
 
 type ColInfo = BarPositions.ColInfo;
 type BarPositions<A> = BarPositions.BarPositions<A>;
@@ -40,7 +41,7 @@ export interface TableResize {
   readonly events: TableResizeEventRegistry;
 }
 
-const create = (wire: ResizeWire, vdirection: BarPositions<ColInfo>): TableResize => {
+const create = (wire: ResizeWire, vdirection: BarPositions<ColInfo>, columnResizeBehaviour: string = 'default'): TableResize => {
   const hdirection = BarPositions.height;
   const manager = BarManager(wire, vdirection, hdirection);
 
@@ -64,7 +65,7 @@ const create = (wire: ResizeWire, vdirection: BarPositions<ColInfo>): TableResiz
   manager.events.adjustWidth.bind(function (event) {
     events.trigger.beforeResize(event.table());
     const delta = vdirection.delta(event.delta(), event.table());
-    Adjustments.adjustWidth(event.table(), delta, event.column(), vdirection);
+    Adjustments.adjustWidth(event.table(), delta, event.column(), vdirection, columnResizeBehaviour as ColumnSizing);
     events.trigger.afterResize(event.table());
   });
 

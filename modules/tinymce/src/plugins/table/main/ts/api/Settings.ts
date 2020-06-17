@@ -6,7 +6,7 @@
  */
 
 import Editor from 'tinymce/core/api/Editor';
-import { Type, Option } from '@ephox/katamari';
+import { Arr, Type, Option } from '@ephox/katamari';
 
 export interface StringMap {
   [key: string]: string;
@@ -43,6 +43,16 @@ const getColorPickerCallback = (editor: Editor): ColorPickerCallback => editor.g
 const isPercentagesForced = (editor: Editor): boolean => editor.getParam('table_responsive_width') === true;
 const isPixelsForced = (editor: Editor): boolean => editor.getParam('table_responsive_width') === false;
 const getToolbar = (editor: Editor): string => editor.getParam('table_toolbar', defaultTableToolbar);
+// // Indicates whether the last column bar should resize the whole table or just the last column
+// const shouldPreserveRatioOnResize = (editor: Editor): boolean => editor.getParam('table_resize_preserve_ratios', true, 'boolean');
+// // Indicates whether changing any column width should change the whole table width
+// const shouldResizeTableOnColumnResize = (editor: Editor): boolean => editor.getParam('table_column_resize_table', false, 'boolean');
+
+const getColumnReszingBehaviour = (editor: Editor): string => {
+  const validModes = [ 'default', 'static', 'resizetable' ];
+  const givenMode = editor.getParam('table_column_sizing', 'default', 'string');
+  return Arr.find(validModes, (mode) => mode === givenMode).getOr('default');
+};
 
 const getCloneElements = (editor: Editor): Option<string[]> => {
   const cloneElements = editor.getParam('table_clone_elements');
@@ -80,5 +90,8 @@ export {
   hasObjectResizing,
   isPercentagesForced,
   isPixelsForced,
-  getToolbar
+  getToolbar,
+  // shouldPreserveRatioOnResize,
+  // shouldResizeTableOnColumnResize,
+  getColumnReszingBehaviour
 };

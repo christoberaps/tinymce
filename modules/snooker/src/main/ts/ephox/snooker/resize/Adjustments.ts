@@ -10,6 +10,7 @@ import * as CellUtils from '../util/CellUtils';
 import { RowData, Detail } from '../api/Structs';
 import { Element } from '@ephox/sugar';
 import { BarPositions, ColInfo, RowInfo } from './BarPositions';
+import { console } from '@ephox/dom-globals';
 
 const getWarehouse = function <T extends Detail> (list: RowData<T>[]) {
   return Warehouse.generate(list);
@@ -26,27 +27,51 @@ const getTableWarehouse = function (table: Element) {
   return getWarehouse(list);
 };
 
-const adjustWidth = function (table: Element, delta: number, index: number, direction: BarPositions<ColInfo>) {
-  const tableSize = TableSize.getTableSize(table);
+const adjustWidth = function (table: Element, delta: number, index: number, direction: BarPositions<ColInfo>, columnResizeBehaviour: TableSize.ColumnSizing) {
+  const tableSize = TableSize.getTableSize(table, columnResizeBehaviour);
   const step = tableSize.getCellDelta(delta);
   const warehouse = getTableWarehouse(table);
   const widths = tableSize.getWidths(warehouse, direction, tableSize);
+  const isLastColumn = index === warehouse.grid.columns() - 1;
+
+  console.log(columnResizeBehaviour);
+
+  // Early return - do not need to mess with the cell widths if dragging the last column bar as the ratio should maintained between all of the columns
+  // if (tableSize.columnSizing === 'default' && tableSize.widthType === TableSize.WidthType.Relative && isLastColumn) {
+  //   tableSize.setTableWidth(table, [], step);
+  //   return;
+  // }
 
   // Calculate all of the new widths for columns
   const deltas = Deltas.determine(widths, index, step, tableSize);
-  const newWidths = Arr.map(deltas, function (dx, i) {
-    return dx + widths[i];
-  });
+  const newWidths = tableSize.getNewWidths(widths, deltas);
 
   // Set the width of each cell based on the column widths
   const newSizes = Recalculations.recalculateWidth(warehouse, newWidths);
-  Arr.each(newSizes, function (cell) {
+  Arr.each(newSizes, (cell) => {
     tableSize.setElementWidth(cell.element, cell.width);
   });
 
   // Set the overall width of the table.
-  if (index === warehouse.grid.columns() - 1) {
-    tableSize.setTableWidth(table, newWidths, step);
+  if (tableSize.columnSizing === 'resizetable' || isLastColumn) {
+    // let newDelta = 0;
+
+    // TODO: Potentially move below logic to 'setTableWidth' function
+
+    // TODO: Maybe have function in table size to calcaulte the new Delta
+    // if (tableSize.widthType === 'fixed') {
+    //   // For px sizing, newDelta includes the extra px for the padding and border width that needs to be included for the new table width to be correct
+    //   newDelta = tableSize.width() - sumUp(widths);
+    // } else if (tableSize.columnSizing !== 'default' && step < 0 && Math.abs(step) > widths[index]) {
+    //   // RTL (relative) over another column
+    //   newDelta = sumUp(deltas);
+    // } else {
+    //   // Anything else
+    //   newDelta = step;
+    // }
+
+    // relative sizing doesn't acutally use the newWidths variable internally
+    tableSize.setTableWidth(table, index, widths, newWidths, deltas, step);
   }
 };
 
@@ -75,7 +100,7 @@ const adjustHeight = function (table: Element, delta: number, index: number, dir
 
 // Ensure that the width of table cells match the passed in table information.
 const adjustWidthTo = function <T extends Detail> (table: Element, list: RowData<T>[], direction: BarPositions<ColInfo>) {
-  const tableSize = TableSize.getTableSize(table);
+  const tableSize = TableSize.getTableSize(table, 'default');
   const warehouse = getWarehouse(list);
   const widths = tableSize.getWidths(warehouse, direction, tableSize);
 
@@ -89,7 +114,7 @@ const adjustWidthTo = function <T extends Detail> (table: Element, list: RowData
   if (newSizes.length > 0) {
     // tableSize.setTableWidth(table, total);
     // WARNING, this may be incorrect, the commented out code above was the original
-    tableSize.setTableWidth(table, widths, tableSize.getCellDelta(0));
+    tableSize.setTableWidth(table, 0, [], widths, [], tableSize.getCellDelta(0));
   }
 };
 

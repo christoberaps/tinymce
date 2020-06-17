@@ -63,7 +63,7 @@ UnitTest.test('ResizeTest', function () {
     assert.eq([ 25, -25 ], deltas);
 
     // Set new width
-    tableSize.setTableWidth(table, [], step);
+    tableSize.setTableWidth(table, 0, widths, [], deltas, step);
     assert.eq(Css.getRaw(table, 'width').getOrDie(), '125%');
 
     Remove.remove(table);
@@ -121,7 +121,7 @@ UnitTest.test('ResizeTest', function () {
     assert.eq([ 25, -25 ], deltas);
 
     // Set new width
-    tableSize.setTableWidth(table, [], step);
+    tableSize.setTableWidth(table, 0, widths, [], deltas, step);
     assert.eq(Css.getRaw(table, 'width').getOrDie(), '125%');
 
     Remove.remove(table);
