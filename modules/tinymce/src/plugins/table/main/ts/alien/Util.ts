@@ -5,10 +5,10 @@
  * For commercial licenses see https://www.tiny.cloud/
  */
 
-import { Compare, Element, Attr, SelectorFilter } from '@ephox/sugar';
-import Editor from 'tinymce/core/api/Editor';
-import { Arr } from '@ephox/katamari';
 import { HTMLElement } from '@ephox/dom-globals';
+import { Arr, Option } from '@ephox/katamari';
+import { Attr, Compare, Element, SelectorFilter } from '@ephox/sugar';
+import Editor from 'tinymce/core/api/Editor';
 
 const getBody = function (editor: Editor) {
   return Element.fromDom(editor.getBody());
@@ -43,6 +43,13 @@ const removeDataStyle = (table) => {
   });
 };
 
+const getRawWidth = function (editor: Editor, elm: HTMLElement) {
+  const raw = editor.dom.getStyle(elm, 'width') || editor.dom.getAttrib(elm, 'width');
+  return Option.from(raw).filter((s) => s.length > 0);
+};
+
+const isPercentage = (value: string) => /(\d+(\.\d+)?)%/.test(value);
+
 export {
   getBody,
   getIsRoot,
@@ -50,5 +57,7 @@ export {
   removePxSuffix,
   getPixelWidth,
   getPixelHeight,
-  removeDataStyle
+  getRawWidth,
+  removeDataStyle,
+  isPercentage
 };

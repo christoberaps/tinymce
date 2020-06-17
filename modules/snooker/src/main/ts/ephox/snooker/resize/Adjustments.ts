@@ -1,15 +1,15 @@
 import { Arr } from '@ephox/katamari';
+import { Element } from '@ephox/sugar';
+import { Detail, RowData } from '../api/Structs';
+import { TableSize } from '../api/TableSize';
 import * as Deltas from '../calc/Deltas';
 import * as DetailsList from '../model/DetailsList';
 import { Warehouse } from '../model/Warehouse';
+import * as CellUtils from '../util/CellUtils';
+import { BarPositions, ColInfo, RowInfo } from './BarPositions';
 import * as ColumnSizes from './ColumnSizes';
 import * as Recalculations from './Recalculations';
 import * as Sizes from './Sizes';
-import * as TableSize from './TableSize';
-import * as CellUtils from '../util/CellUtils';
-import { RowData, Detail } from '../api/Structs';
-import { Element } from '@ephox/sugar';
-import { BarPositions, ColInfo, RowInfo } from './BarPositions';
 
 const getWarehouse = function <T extends Detail> (list: RowData<T>[]) {
   return Warehouse.generate(list);
@@ -26,8 +26,7 @@ const getTableWarehouse = function (table: Element) {
   return getWarehouse(list);
 };
 
-const adjustWidth = function (table: Element, delta: number, index: number, direction: BarPositions<ColInfo>) {
-  const tableSize = TableSize.getTableSize(table);
+const adjustWidth = function (table: Element, delta: number, index: number, direction: BarPositions<ColInfo>, tableSize: TableSize) {
   const step = tableSize.getCellDelta(delta);
   const warehouse = getTableWarehouse(table);
   const widths = tableSize.getWidths(warehouse, direction, tableSize);
@@ -74,8 +73,7 @@ const adjustHeight = function (table: Element, delta: number, index: number, dir
 };
 
 // Ensure that the width of table cells match the passed in table information.
-const adjustWidthTo = function <T extends Detail> (table: Element, list: RowData<T>[], direction: BarPositions<ColInfo>) {
-  const tableSize = TableSize.getTableSize(table);
+const adjustWidthTo = function <T extends Detail> (table: Element, list: RowData<T>[], direction: BarPositions<ColInfo>, tableSize: TableSize) {
   const warehouse = getWarehouse(list);
   const widths = tableSize.getWidths(warehouse, direction, tableSize);
 

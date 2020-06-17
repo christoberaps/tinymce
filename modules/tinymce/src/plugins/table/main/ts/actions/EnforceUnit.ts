@@ -5,17 +5,17 @@
  * For commercial licenses see https://www.tiny.cloud/
  */
 
+import { HTMLTableElement } from '@ephox/dom-globals';
 import { Arr } from '@ephox/katamari';
 import { Css, Element, SelectorFilter, Traverse } from '@ephox/sugar';
 import { getPixelWidth } from '../alien/Util';
-import { HTMLTableElement } from '@ephox/dom-globals';
 
-const calculatePercentageWidth = (element: Element, parent: Element): string => getPixelWidth(element.dom()) / getPixelWidth(parent.dom()) * 100 + '%';
+const calculatePercentageWidth = (element: Element, offsetParent: Element): string => getPixelWidth(element.dom()) / getPixelWidth(offsetParent.dom()) * 100 + '%';
 
 const enforcePercentage = (rawTable: HTMLTableElement) => {
   const table = Element.fromDom(rawTable);
 
-  Traverse.parent(table).map((parent) => calculatePercentageWidth(table, parent)).each((tablePercentage) => {
+  Traverse.offsetParent(table).map((parent) => calculatePercentageWidth(table, parent)).each((tablePercentage) => {
     Css.set(table, 'width', tablePercentage);
 
     Arr.each(SelectorFilter.descendants(table, 'tr'), (tr) => {
@@ -32,5 +32,6 @@ const enforcePixels = (table: HTMLTableElement) => {
 
 export {
   enforcePercentage,
-  enforcePixels
+  enforcePixels,
+  calculatePercentageWidth
 };
